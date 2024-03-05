@@ -20,15 +20,6 @@ func (app *application) handleCommand(message twitch.PrivateMessage) {
 	// e.g. `()ping` would be `ping`.
 	commandName := strings.ToLower(strings.SplitN(message.Message, " ", 3)[0][2:])
 
-	// cmdParams are additional command parameters.
-	// e.g. `()weather san antonio`
-	// cmdParam[0] is `san` and cmdParam[1] = `antonio`.
-	//
-	// Since Twitch messages are at most 500 characters I use a
-	// maximum count of 500+10 just to be safe.
-	// https://discuss.dev.twitch.tv/t/missing-client-side-message-length-check/21316
-	cmdParams := strings.SplitN(message.Message, " ", 500)
-
 	// msgLen is the amount of words in a message without the prefix.
 	// Useful to check if enough cmdParams are provided.
 	msgLen := len(strings.SplitN(message.Message, " ", -2))
@@ -41,7 +32,6 @@ func (app *application) handleCommand(message twitch.PrivateMessage) {
 		"message.Message", message.Message,
 		"message.Channel", target,
 		"commandName", commandName,
-		"cmdParams", cmdParams,
 		"msgLen", msgLen,
 	)
 
@@ -53,24 +43,18 @@ func (app *application) handleCommand(message twitch.PrivateMessage) {
 	// If there is return the data.CommandModel.Text entry.
 	// Otherwise we ignore the message.
 	switch commandName {
-	case "":
-		if msgLen == 1 {
-			reply = "xd"
-		}
-		// --------------------------------
-		// pleb commands
-		// --------------------------------
 	case "gpt":
 		if msgLen < 2 {
-			reply = "Not enough arguments provided. Usage: ()bttv <emote name>"
+			reply = "Not enough arguments provided. Usage: ()gpt <query>"
 		} else {
-			app.chatPersonalContext(target, message.User.Name, message.Message[6:len(message.Message)])
+			//app.generateNoContext(target, message.User.Name, message.Message[6:len(message.Message)])
+			//app.chatGeneralContext(target, message.User.Name, message.Message[6:len(message.Message)])
+			app.chatUserContext(target, message.User.Name, message.Message[6:len(message.Message)])
 		}
 
 		if reply != "" {
 			go app.Send(target, reply)
 			return
 		}
-
 	}
 }

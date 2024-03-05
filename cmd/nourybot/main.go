@@ -19,12 +19,12 @@ type config struct {
 }
 
 type application struct {
-	TwitchClient     *twitch.Client
-	Log              *zap.SugaredLogger
-	Environment      string
-	Config           config
-	PersonalMsgStore map[string][]ollamaMessage
-	MsgStore         []ollamaMessage
+	TwitchClient *twitch.Client
+	Log          *zap.SugaredLogger
+	Environment  string
+	Config       config
+	UserMsgStore map[string][]ollamaMessage
+	MsgStore     []ollamaMessage
 }
 
 func main() {
@@ -60,12 +60,12 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	cfg.twitchOauth = os.Getenv("TWITCH_OAUTH")
 	tc := twitch.NewClient(cfg.twitchUsername, cfg.twitchOauth)
 
-	personalMsgStore := make(map[string][]ollamaMessage)
+	userMsgStore := make(map[string][]ollamaMessage)
 	app := &application{
-		TwitchClient:     tc,
-		Log:              sugar,
-		Config:           cfg,
-		PersonalMsgStore: personalMsgStore,
+		TwitchClient: tc,
+		Log:          sugar,
+		Config:       cfg,
+		UserMsgStore: userMsgStore,
 	}
 
 	// Received a PrivateMessage (normal chat message).
@@ -79,17 +79,11 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 
 		// Message was shorter than our prefix is therefore it's irrelevant for us.
 		if len(message.Message) >= 2 {
-			// This bots prefix is "()" configured above at cfg.commandPrefix,
 			// Check if the first 2 characters of the mesage were our prefix.
 			// if they were forward the message to the command handler.
 			if message.Message[:2] == "()" {
 				go app.handleCommand(message)
 				return
-			}
-
-			// Special rule for #pajlada.
-			if message.Message == "!nourybot" {
-				app.Send(message.Channel, "Lidl Twitch bot made by @nouryxd. Prefix: ()")
 			}
 		}
 	})
@@ -105,6 +99,7 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	})
 
 	app.TwitchClient.Join("nouryxd")
+	app.TwitchClient.Join("nourybot")
 
 	// Actually connect to chat.
 	err = app.TwitchClient.Connect()

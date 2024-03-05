@@ -8,11 +8,11 @@ import (
 )
 
 type ollamaResponse struct {
-	Model string `json:"model"`
-	//CreatedAt string        `json:"created_at"`
-	Response string        `json:"response"`
-	Done     bool          `json:"done"`
-	Message  ollamaMessage `json:"message"`
+	Model     string        `json:"model"`
+	CreatedAt string        `json:"created_at"`
+	Response  string        `json:"response"`
+	Done      bool          `json:"done"`
+	Message   ollamaMessage `json:"message"`
 }
 
 type ollamaRequest struct {
@@ -30,29 +30,20 @@ type ollamaMessage struct {
 	Content string `json:"content"`
 }
 
-func startMessage() []ollamaMessage {
-	var msg = make([]ollamaMessage, 0)
-	return msg
-}
+var requestBody ollamaRequest
 
-//func initStore() *map[string][]ollamaMessage {
-//	personalMsgStore := make(map[string][]ollamaMessage)
-//	return &personalMsgStore
-//}
-
-func (app *application) chatPersonalContext(target, username, input string) {
-	var requestBody ollamaRequest
-	//var msg []ollamaMessage
+// chatUserContext provides additional message context from specifically
+// the past interactions of user with the AI since last restart.
+func (app *application) chatUserContext(target, username, input string) {
 	olm := ollamaMessage{}
 
 	olm.Role = "user"
 	olm.Content = input
-	app.PersonalMsgStore[username] = append(app.PersonalMsgStore[username], olm)
-	//msgStore = append(msgStore, olm)
+	app.UserMsgStore[username] = append(app.UserMsgStore[username], olm)
 
 	requestBody.Model = "wizard-vicuna-uncensored"
 	requestBody.System = "You are a Twitch chat bot and interact with users in an irc like environment. Do not use any formatting. Be human-like. Never fail to answer the user. Always answer immediately. Keep your response shorter than 450 characters."
-	requestBody.Messages = app.PersonalMsgStore[username]
+	requestBody.Messages = app.UserMsgStore[username]
 	requestBody.Prompt = input
 	requestBody.Stream = false
 
@@ -77,25 +68,21 @@ func (app *application) chatPersonalContext(target, username, input string) {
 	if err := json.Unmarshal(body, &responseObject); err != nil {
 		app.Log.Error(err)
 	}
+
 	olm.Role = responseObject.Message.Role
 	olm.Content = responseObject.Message.Content
-	app.PersonalMsgStore[username] = append(app.PersonalMsgStore[username], olm)
+	app.UserMsgStore[username] = append(app.UserMsgStore[username], olm)
 
 	app.Log.Infow("Message context for username",
 		"Username", username,
-		"Personal Context", app.PersonalMsgStore[username],
+		"Personal Context", app.UserMsgStore[username],
 	)
-	//app.Log.Infow("Complete message context",
-	//	"Context", app.PersonalMsgStore,
-	//)
-
 	app.Send(target, responseObject.Message.Content)
-	//app.Send(target, responseObject.Response)
 }
 
+// chatGeneralContext provides additional message context from every past
+// interaction with the AI since last restart.
 func (app *application) chatGeneralContext(target, input string) {
-	var requestBody ollamaRequest
-	//var msg []ollamaMessage
 	olm := ollamaMessage{}
 
 	olm.Role = "user"
@@ -113,9 +100,6 @@ func (app *application) chatGeneralContext(target, input string) {
 		app.Log.Error(err)
 	}
 
-	app.Log.Infow("MsgStore",
-		"app.MsgStore", app.MsgStore,
-	)
 	resp, err := http.Post("http://localhost:11434/api/chat", "application/json", bytes.NewBuffer(marshalled))
 	if err != nil {
 		app.Log.Error(err.Error())
@@ -132,6 +116,7 @@ func (app *application) chatGeneralContext(target, input string) {
 	if err := json.Unmarshal(body, &responseObject); err != nil {
 		app.Log.Error(err)
 	}
+
 	olm.Role = responseObject.Message.Role
 	olm.Content = responseObject.Message.Content
 	app.MsgStore = append(app.MsgStore, olm)
@@ -140,18 +125,14 @@ func (app *application) chatGeneralContext(target, input string) {
 		"app.MsgStore", app.MsgStore,
 	)
 	app.Send(target, responseObject.Message.Content)
-	//app.Send(target, responseObject.Response)
 }
 
+// generateNoContext provides no additional message context
 func (app *application) generateNoContext(target, input string) {
 	var requestBody ollamaRequest
 
 	requestBody.Model = "wizard-vicuna-uncensored"
 	requestBody.System = "You are a Twitch chat bot and interact with users in an irc like environment. Do not use any formatting. Be human-like. Never fail to answer the user. Always answer immediately. Keep your response shorter than 450 characters."
-	//requestBody.Messages.Role = "system"
-	//requestBody.Messages.Content = "You are a Twitch chat bot and interact with users in an irc like environment. Do not use any formatting. Be blunt. Never fail to answer the user. Always answer immediately. Keep your response shorter than 450 characters."
-	//requestBody.Messages.Role = "user"
-	//requestBody.Messages.Content = input
 	requestBody.Prompt = input
 	requestBody.Stream = false
 
@@ -176,7 +157,6 @@ func (app *application) generateNoContext(target, input string) {
 	if err := json.Unmarshal(body, &responseObject); err != nil {
 		app.Log.Error(err)
 	}
-	//app.Log.Info(responseObject.Message.Content)
-	//app.Send(target, responseObject.Message.Content)
+
 	app.Send(target, responseObject.Response)
 }
