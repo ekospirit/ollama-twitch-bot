@@ -16,12 +16,14 @@ type config struct {
 }
 
 type application struct {
-	TwitchClient *twitch.Client
-	Log          *zap.SugaredLogger
-	OllamaModel  string
-	Config       config
-	UserMsgStore map[string][]ollamaMessage
-	MsgStore     []ollamaMessage
+	TwitchClient  *twitch.Client
+	Log           *zap.SugaredLogger
+	OllamaModel   string
+	OllamaContext string
+	OllamaSystem  string
+	Config        config
+	UserMsgStore  map[string][]ollamaMessage
+	MsgStore      []ollamaMessage
 }
 
 func main() {
@@ -50,11 +52,13 @@ func main() {
 	userMsgStore := make(map[string][]ollamaMessage)
 
 	app := &application{
-		TwitchClient: tc,
-		Log:          sugar,
-		OllamaModel:  os.Getenv("OLLAMA_MODEL"),
-		Config:       cfg,
-		UserMsgStore: userMsgStore,
+		TwitchClient:  tc,
+		Log:           sugar,
+		OllamaModel:   os.Getenv("OLLAMA_MODEL"),
+		OllamaContext: os.Getenv("OLLAMA_CONTEXT"),
+		OllamaSystem:  os.Getenv("OLLAMA_SYSTEM"),
+		Config:        cfg,
+		UserMsgStore:  userMsgStore,
 	}
 
 	// Received a PrivateMessage (normal chat message).
@@ -79,6 +83,9 @@ func main() {
 
 	app.TwitchClient.OnConnect(func() {
 		app.Log.Info("Successfully connected to Twitch Servers")
+		app.Log.Info("Ollama Context: ", app.OllamaContext)
+		app.Log.Info("Ollama System: ", app.OllamaSystem)
+
 	})
 
 	channels := os.Getenv("TWITCH_CHANNELS")

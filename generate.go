@@ -42,7 +42,7 @@ func (app *application) chatUserContext(target, username, input string) {
 	app.UserMsgStore[username] = append(app.UserMsgStore[username], olm)
 
 	requestBody.Model = app.OllamaModel
-	requestBody.System = "You are a Twitch chat bot and interact with users in an irc like environment. Do not use any formatting. Be human-like. Never fail to answer the user. Always answer immediately. Keep your response shorter than 450 characters."
+	requestBody.System = app.OllamaSystem
 	requestBody.Messages = app.UserMsgStore[username]
 	requestBody.Prompt = input
 	requestBody.Stream = false
@@ -90,7 +90,7 @@ func (app *application) chatGeneralContext(target, input string) {
 	app.MsgStore = append(app.MsgStore, olm)
 
 	requestBody.Model = app.OllamaModel
-	requestBody.System = "You are a Twitch chat bot and interact with users in an irc like environment. Do not use any formatting. Be human-like. Never fail to answer the user. Always answer immediately. Keep your response shorter than 450 characters."
+	requestBody.System = app.OllamaSystem
 	requestBody.Messages = app.MsgStore
 	requestBody.Prompt = input
 	requestBody.Stream = false
@@ -132,7 +132,7 @@ func (app *application) generateNoContext(target, input string) {
 	var requestBody ollamaRequest
 
 	requestBody.Model = app.OllamaModel
-	requestBody.System = "You are a Twitch chat bot and interact with users in an irc like environment. Do not use any formatting. Be human-like. Never fail to answer the user. Always answer immediately. Keep your response shorter than 450 characters."
+	requestBody.System = app.OllamaSystem
 	requestBody.Prompt = input
 	requestBody.Stream = false
 

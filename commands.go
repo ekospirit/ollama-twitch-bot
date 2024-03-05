@@ -12,48 +12,34 @@ import (
 func (app *application) handleCommand(message twitch.PrivateMessage) {
 	var reply string
 
-	if message.Channel == "forsen" {
-		return
-	}
-
-	// commandName is the actual name of the command without the prefix.
-	// e.g. `()ping` would be `ping`.
-	commandName := strings.ToLower(strings.SplitN(message.Message, " ", 3)[0][2:])
-
 	// msgLen is the amount of words in a message without the prefix.
 	// Useful to check if enough cmdParams are provided.
 	msgLen := len(strings.SplitN(message.Message, " ", -2))
 
-	// target is the channelname the message originated from and
-	// where the TwitchClient should send the response
-	target := message.Channel
-	app.Log.Infow("Command received",
-		// "message", message, // Pretty taxing
-		"message.Message", message.Message,
-		"message.Channel", target,
-		"commandName", commandName,
-		"msgLen", msgLen,
-	)
-
-	// A `commandName` is every message starting with `()`.
-	// Hardcoded commands have a priority over database commands.
-	// Switch over the commandName and see if there is a hardcoded case for it.
-	// If there was no switch case satisfied, query the database if there is
-	// a data.CommandModel.Name equal to the `commandName`
-	// If there is return the data.CommandModel.Text entry.
-	// Otherwise we ignore the message.
+	// commandName is the actual name of the command without the prefix.
+	// e.g. `()gpt` is `gpt`.
+	commandName := strings.ToLower(strings.SplitN(message.Message, " ", 3)[0][2:])
 	switch commandName {
 	case "gpt":
 		if msgLen < 2 {
 			reply = "Not enough arguments provided. Usage: ()gpt <query>"
 		} else {
-			//app.generateNoContext(target, message.User.Name, message.Message[6:len(message.Message)])
-			//app.chatGeneralContext(target, message.User.Name, message.Message[6:len(message.Message)])
-			app.chatUserContext(target, message.User.Name, message.Message[6:len(message.Message)])
-		}
+			switch app.OllamaContext {
+			case "none":
+				app.generateNoContext(message.Channel, message.Message[6:len(message.Message)])
+				return
 
+			case "general":
+				app.chatGeneralContext(message.Channel, message.Message[6:len(message.Message)])
+				return
+
+			case "user":
+				app.chatUserContext(message.Channel, message.User.Name, message.Message[6:len(message.Message)])
+				return
+			}
+		}
 		if reply != "" {
-			go app.Send(target, reply)
+			go app.Send(message.Channel, reply)
 			return
 		}
 	}
