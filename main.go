@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"strings"
 
 	"github.com/gempir/go-twitch-irc/v4"
 	"github.com/joho/godotenv"
@@ -41,12 +42,13 @@ func main() {
 		sugar.Fatal("Error loading .env")
 	}
 
-	// Twitch config variables
+	// Twitch account config
 	cfg.twitchUsername = os.Getenv("TWITCH_USERNAME")
 	cfg.twitchOauth = os.Getenv("TWITCH_OAUTH")
 	tc := twitch.NewClient(cfg.twitchUsername, cfg.twitchOauth)
 
 	userMsgStore := make(map[string][]ollamaMessage)
+
 	app := &application{
 		TwitchClient: tc,
 		Log:          sugar,
@@ -75,17 +77,16 @@ func main() {
 	})
 
 	app.TwitchClient.OnConnect(func() {
-		app.TwitchClient.Say("nouryxd", "MrDestructoid")
-		app.TwitchClient.Say("nourybot", "MrDestructoid")
-
-		// Successfully connected to Twitch
-		app.Log.Infow("Successfully connected to Twitch Servers",
-			"Bot username", cfg.twitchUsername,
-		)
+		app.Log.Info("Successfully connected to Twitch Servers")
 	})
 
-	app.TwitchClient.Join("nouryxd")
-	app.TwitchClient.Join("nourybot")
+	channels := os.Getenv("TWITCH_CHANNELS")
+	channel := strings.Split(channels, ",")
+	for i := 0; i < len(channel); i++ {
+		app.TwitchClient.Join(channel[i])
+		app.TwitchClient.Say(channel[i], "MrDestructoid")
+		app.Log.Infof("Joining channel: %s", channel[i])
+	}
 
 	// Actually connect to chat.
 	err = app.TwitchClient.Connect()
