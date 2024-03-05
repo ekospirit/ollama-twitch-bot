@@ -1,18 +1,17 @@
-BINARY_NAME=Nourybot.out
-BINARY_NAME_API=NourybotApi.out
+build:
+	go get -d -v ./...
+	go build -o Nourybot.out .
+
+run:
+	./Nourybot.out
 
 up:
-	docker compose up
-
-down:
 	docker compose down
+	docker compose build
+	docker compose up
 
 rebuild:
 	docker compose down
 	docker compose build
 	docker compose up -d
 
-xd:
-	docker compose down
-	docker compose build
-	docker compose up 

@@ -17,7 +17,7 @@ COPY .env .
 RUN go get -d -v ./...
 
 # Build the Go app
-RUN go build ./cmd/nourybot
+RUN go build -o Nourybot.out .
 
 # Run the executable
-CMD [ "./nourybot"]
+CMD [ "./Nourybot.out"]

@@ -1,11 +1,7 @@
 package main
 
 import (
-	"context"
-	"fmt"
-	"io"
 	"os"
-	"os/signal"
 
 	"github.com/gempir/go-twitch-irc/v4"
 	"github.com/joho/godotenv"
@@ -28,16 +24,6 @@ type application struct {
 }
 
 func main() {
-	ctx := context.Background()
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
-	if err := run(ctx, os.Stdout, os.Args); err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err)
-		os.Exit(1)
-	}
-}
-
-func run(ctx context.Context, w io.Writer, args []string) error {
 	var cfg config
 
 	logger := zap.NewExample()
@@ -106,6 +92,4 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	if err != nil {
 		panic(err)
 	}
-
-	return nil
 }
