@@ -18,7 +18,7 @@ type config struct {
 type application struct {
 	TwitchClient *twitch.Client
 	Log          *zap.SugaredLogger
-	Environment  string
+	OllamaModel  string
 	Config       config
 	UserMsgStore map[string][]ollamaMessage
 	MsgStore     []ollamaMessage
@@ -52,6 +52,7 @@ func main() {
 	app := &application{
 		TwitchClient: tc,
 		Log:          sugar,
+		OllamaModel:  os.Getenv("OLLAMA_MODEL"),
 		Config:       cfg,
 		UserMsgStore: userMsgStore,
 	}
