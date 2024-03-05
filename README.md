@@ -4,6 +4,7 @@ Twitch chat bot that interacts with ollama. Work in Progress.
 
 ## Requirements:
 Go
+
 [Ollama.com](https://ollama.com)
 
 ## Build and run:
