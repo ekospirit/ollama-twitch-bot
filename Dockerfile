@@ -1,10 +1,6 @@
 # Start from golang base image
 FROM golang:alpine
 
-RUN apk add --no-cache make
-RUN apk add --no-cache git
-RUN apk add --no-cache jq
-
 # Setup folders
 RUN mkdir /app
 WORKDIR /app
