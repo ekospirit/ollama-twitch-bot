@@ -39,13 +39,13 @@ func (app *application) checkMessage(text string) (bool, string) {
 		"message": text,
 	})
 	if err != nil {
-		app.Log.Error(err)
+		app.log.Error(err)
 		return true, "could not check banphrase api"
 	}
 
 	resp, err := http.Post(banPhraseUrl, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
-		app.Log.Error(err)
+		app.log.Error(err)
 		return true, "could not check banphrase api"
 	}
 
@@ -53,12 +53,12 @@ func (app *application) checkMessage(text string) (bool, string) {
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		app.Log.Error(err)
+		app.log.Error(err)
 	}
 
 	var responseObject banphraseResponse
 	if err := json.Unmarshal(body, &responseObject); err != nil {
-		app.Log.Error(err)
+		app.log.Error(err)
 		return true, "could not check banphrase api"
 	}
 
@@ -79,7 +79,7 @@ func (app *application) checkMessage(text string) (bool, string) {
 
 // Send is used to send twitch replies and contains the necessary safeguards and logic for that.
 // Send also logs the twitch.PrivateMessage contents into the database.
-func (app *application) Send(target, message string) {
+func (app *application) send(target, message string) {
 	// Message we are trying to send is empty.
 	if len(message) == 0 {
 		return
@@ -110,24 +110,23 @@ func (app *application) Send(target, message string) {
 			firstMessage := message[0:499]
 			secondMessage := message[499:]
 
-			app.TwitchClient.Say(target, firstMessage)
-			app.TwitchClient.Say(target, secondMessage)
+			app.twitchClient.Say(target, firstMessage)
+			app.twitchClient.Say(target, secondMessage)
 
 			return
 		} else {
 			// Message was fine.
-			go app.TwitchClient.Say(target, message)
+			go app.twitchClient.Say(target, message)
 			return
 		}
 	} else {
 		// Bad message, replace message and log it.
-		app.TwitchClient.Say(target, "[BANPHRASED] monkaS")
-		app.Log.Infow("banned message detected",
+		app.twitchClient.Say(target, "[BANPHRASED] monkaS")
+		app.log.Infow("banned message detected",
 			"target channel", target,
 			"message", message,
 			"ban reason", banReason,
 		)
-
 		return
 	}
 }

@@ -39,45 +39,45 @@ func (app *application) chatUserContext(target, username, input string) {
 
 	olm.Role = "user"
 	olm.Content = input
-	app.UserMsgStore[username] = append(app.UserMsgStore[username], olm)
+	app.userMsgStore[username] = append(app.userMsgStore[username], olm)
 
-	requestBody.Model = app.OllamaModel
-	requestBody.System = app.OllamaSystem
-	requestBody.Messages = app.UserMsgStore[username]
+	requestBody.Model = app.config.ollamaModel
+	requestBody.System = app.config.ollamaSystem
+	requestBody.Messages = app.userMsgStore[username]
 	requestBody.Prompt = input
 	requestBody.Stream = false
 
 	marshalled, err := json.Marshal(requestBody)
 	if err != nil {
-		app.Log.Error(err)
+		app.log.Error(err)
 	}
 
 	resp, err := http.Post("http://localhost:11434/api/chat", "application/json", bytes.NewBuffer(marshalled))
 	if err != nil {
-		app.Log.Error(err.Error())
+		app.log.Error(err.Error())
 	}
 
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		app.Log.Error(err.Error())
+		app.log.Error(err.Error())
 	}
 
 	var responseObject ollamaResponse
 	if err := json.Unmarshal(body, &responseObject); err != nil {
-		app.Log.Error(err)
+		app.log.Error(err)
 	}
 
 	olm.Role = responseObject.Message.Role
 	olm.Content = responseObject.Message.Content
-	app.UserMsgStore[username] = append(app.UserMsgStore[username], olm)
+	app.userMsgStore[username] = append(app.userMsgStore[username], olm)
 
-	app.Log.Infow("Message context for username",
-		"Username", username,
-		"Personal Context", app.UserMsgStore[username],
+	app.log.Infow("Message context for username",
+		"username", username,
+		"app.userMsgStore[username]", app.userMsgStore[username],
 	)
-	app.Send(target, responseObject.Message.Content)
+	app.send(target, responseObject.Message.Content)
 }
 
 // chatGeneralContext provides additional message context from every past
@@ -87,76 +87,76 @@ func (app *application) chatGeneralContext(target, input string) {
 
 	olm.Role = "user"
 	olm.Content = input
-	app.MsgStore = append(app.MsgStore, olm)
+	app.msgStore = append(app.msgStore, olm)
 
-	requestBody.Model = app.OllamaModel
-	requestBody.System = app.OllamaSystem
-	requestBody.Messages = app.MsgStore
+	requestBody.Model = app.config.ollamaModel
+	requestBody.System = app.config.ollamaSystem
+	requestBody.Messages = app.msgStore
 	requestBody.Prompt = input
 	requestBody.Stream = false
 
 	marshalled, err := json.Marshal(requestBody)
 	if err != nil {
-		app.Log.Error(err)
+		app.log.Error(err)
 	}
 
 	resp, err := http.Post("http://localhost:11434/api/chat", "application/json", bytes.NewBuffer(marshalled))
 	if err != nil {
-		app.Log.Error(err.Error())
+		app.log.Error(err.Error())
 	}
 
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		app.Log.Error(err.Error())
+		app.log.Error(err.Error())
 	}
 
 	var responseObject ollamaResponse
 	if err := json.Unmarshal(body, &responseObject); err != nil {
-		app.Log.Error(err)
+		app.log.Error(err)
 	}
 
 	olm.Role = responseObject.Message.Role
 	olm.Content = responseObject.Message.Content
-	app.MsgStore = append(app.MsgStore, olm)
+	app.msgStore = append(app.msgStore, olm)
 
-	app.Log.Infow("MsgStore",
-		"app.MsgStore", app.MsgStore,
+	app.log.Infow("app.msgStore",
+		"app.msgStore", app.msgStore,
 	)
-	app.Send(target, responseObject.Message.Content)
+	app.send(target, responseObject.Message.Content)
 }
 
 // generateNoContext provides no additional message context
 func (app *application) generateNoContext(target, input string) {
 	var requestBody ollamaRequest
 
-	requestBody.Model = app.OllamaModel
-	requestBody.System = app.OllamaSystem
+	requestBody.Model = app.config.ollamaModel
+	requestBody.System = app.config.ollamaSystem
 	requestBody.Prompt = input
 	requestBody.Stream = false
 
 	marshalled, err := json.Marshal(requestBody)
 	if err != nil {
-		app.Log.Error(err)
+		app.log.Error(err)
 	}
 
 	resp, err := http.Post("http://localhost:11434/api/generate", "application/json", bytes.NewBuffer(marshalled))
 	if err != nil {
-		app.Log.Error(err.Error())
+		app.log.Error(err.Error())
 	}
 
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		app.Log.Error(err.Error())
+		app.log.Error(err.Error())
 	}
 
 	var responseObject ollamaResponse
 	if err := json.Unmarshal(body, &responseObject); err != nil {
-		app.Log.Error(err)
+		app.log.Error(err)
 	}
 
-	app.Send(target, responseObject.Response)
+	app.send(target, responseObject.Response)
 }

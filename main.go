@@ -12,18 +12,17 @@ import (
 type config struct {
 	twitchUsername string
 	twitchOauth    string
-	commandPrefix  string
+	ollamaModel    string
+	ollamaContext  string
+	ollamaSystem   string
 }
 
 type application struct {
-	TwitchClient  *twitch.Client
-	Log           *zap.SugaredLogger
-	OllamaModel   string
-	OllamaContext string
-	OllamaSystem  string
-	Config        config
-	UserMsgStore  map[string][]ollamaMessage
-	MsgStore      []ollamaMessage
+	twitchClient *twitch.Client
+	log          *zap.SugaredLogger
+	config       config
+	userMsgStore map[string][]ollamaMessage
+	msgStore     []ollamaMessage
 }
 
 func main() {
@@ -44,25 +43,24 @@ func main() {
 		sugar.Fatal("Error loading .env")
 	}
 
-	// Twitch account config
 	cfg.twitchUsername = os.Getenv("TWITCH_USERNAME")
 	cfg.twitchOauth = os.Getenv("TWITCH_OAUTH")
+	cfg.ollamaModel = os.Getenv("OLLAMA_MODEL")
+	cfg.ollamaContext = os.Getenv("OLLAMA_CONTEXT")
+	cfg.ollamaSystem = os.Getenv("OLLAMA_SYSTEM")
 	tc := twitch.NewClient(cfg.twitchUsername, cfg.twitchOauth)
 
 	userMsgStore := make(map[string][]ollamaMessage)
 
 	app := &application{
-		TwitchClient:  tc,
-		Log:           sugar,
-		OllamaModel:   os.Getenv("OLLAMA_MODEL"),
-		OllamaContext: os.Getenv("OLLAMA_CONTEXT"),
-		OllamaSystem:  os.Getenv("OLLAMA_SYSTEM"),
-		Config:        cfg,
-		UserMsgStore:  userMsgStore,
+		twitchClient: tc,
+		log:          sugar,
+		config:       cfg,
+		userMsgStore: userMsgStore,
 	}
 
 	// Received a PrivateMessage (normal chat message).
-	app.TwitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
+	app.twitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
 		// roomId is the Twitch UserID of the channel the message originated from.
 		// If there is no roomId something went really wrong.
 		roomId := message.Tags["room-id"]
@@ -81,23 +79,23 @@ func main() {
 		}
 	})
 
-	app.TwitchClient.OnConnect(func() {
-		app.Log.Info("Successfully connected to Twitch Servers")
-		app.Log.Info("Ollama Context: ", app.OllamaContext)
-		app.Log.Info("Ollama System: ", app.OllamaSystem)
+	app.twitchClient.OnConnect(func() {
+		app.log.Info("Successfully connected to Twitch Servers")
+		app.log.Info("Ollama Context: ", app.config.ollamaContext)
+		app.log.Info("Ollama System: ", app.config.ollamaSystem)
 
 	})
 
 	channels := os.Getenv("TWITCH_CHANNELS")
 	channel := strings.Split(channels, ",")
 	for i := 0; i < len(channel); i++ {
-		app.TwitchClient.Join(channel[i])
-		app.TwitchClient.Say(channel[i], "MrDestructoid")
-		app.Log.Infof("Joining channel: %s", channel[i])
+		app.twitchClient.Join(channel[i])
+		app.twitchClient.Say(channel[i], "MrDestructoid")
+		app.log.Infof("Joining channel: %s", channel[i])
 	}
 
 	// Actually connect to chat.
-	err = app.TwitchClient.Connect()
+	err = app.twitchClient.Connect()
 	if err != nil {
 		panic(err)
 	}
