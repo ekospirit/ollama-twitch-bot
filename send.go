@@ -78,14 +78,9 @@ func (app *application) checkMessage(text string) (bool, string) {
 }
 
 // Send is used to send twitch replies and contains the necessary safeguards and logic for that.
-// Send also logs the twitch.PrivateMessage contents into the database.
 func (app *application) send(target, message string) {
 	// Message we are trying to send is empty.
 	if len(message) == 0 {
-		return
-	}
-
-	if target == "forsen" {
 		return
 	}
 
@@ -105,7 +100,6 @@ func (app *application) send(target, message string) {
 		// Twitch has a maximum length for messages of 510 characters so to be safe
 		// we split and check at 500 characters.
 		// https://discuss.dev.twitch.tv/t/missing-client-side-message-length-check/21316
-		// TODO: Make it so it splits at a space instead and not in the middle of a word.
 		if len(message) > 500 {
 			firstMessage := message[0:499]
 			secondMessage := message[499:]
