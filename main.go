@@ -67,12 +67,39 @@ func main() {
 		}
 
 		// Message was shorter than our prefix is therefore it's irrelevant for us.
-		if len(message.Message) >= 2 {
-			// Check if the first 2 characters of the mesage were our prefix.
-			// if they were forward the message to the command handler.
-			if message.Message[:2] == "()" {
-				go app.handleCommand(message)
-				return
+		if len(message.Message) >= 2 && message.Message[:2] == "()" {
+			var reply string
+
+			// msgLen is the amount of words in a message without the prefix.
+			msgLen := len(strings.SplitN(message.Message, " ", -2))
+
+			// commandName is the actual name of the command without the prefix.
+			// e.g. `()gpt` is `gpt`.
+			commandName := strings.ToLower(strings.SplitN(message.Message, " ", 3)[0][2:])
+			switch commandName {
+			case "gpt":
+				if msgLen < 2 {
+					reply = "Not enough arguments provided. Usage: ()gpt <query>"
+					return
+				} else {
+					switch app.cfg.ollamaContext {
+					case "none":
+						app.generateNoContext(message.Channel, message.Message[6:len(message.Message)])
+						return
+
+					case "general":
+						app.chatGeneralContext(message.Channel, message.Message[6:len(message.Message)])
+						return
+
+					case "user":
+						app.chatUserContext(message.Channel, message.User.Name, message.Message[6:len(message.Message)])
+						return
+					}
+				}
+				if reply != "" {
+					go app.send(message.Channel, reply)
+					return
+				}
 			}
 		}
 	})
