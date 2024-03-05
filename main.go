@@ -20,14 +20,12 @@ type config struct {
 type application struct {
 	twitchClient *twitch.Client
 	log          *zap.SugaredLogger
-	config       config
+	cfg          config
 	userMsgStore map[string][]ollamaMessage
 	msgStore     []ollamaMessage
 }
 
 func main() {
-	var cfg config
-
 	logger := zap.NewExample()
 	defer func() {
 		if err := logger.Sync(); err != nil {
@@ -43,21 +41,23 @@ func main() {
 		sugar.Fatal("Error loading .env")
 	}
 
-	cfg.twitchUsername = os.Getenv("TWITCH_USERNAME")
-	cfg.twitchOauth = os.Getenv("TWITCH_OAUTH")
-	cfg.ollamaModel = os.Getenv("OLLAMA_MODEL")
-	cfg.ollamaContext = os.Getenv("OLLAMA_CONTEXT")
-	cfg.ollamaSystem = os.Getenv("OLLAMA_SYSTEM")
-	tc := twitch.NewClient(cfg.twitchUsername, cfg.twitchOauth)
+	//tc := twitch.NewClient(config.twitchUsername, config.twitchOauth)
 
 	userMsgStore := make(map[string][]ollamaMessage)
 
 	app := &application{
-		twitchClient: tc,
 		log:          sugar,
-		config:       cfg,
 		userMsgStore: userMsgStore,
 	}
+
+	app.cfg.twitchUsername = os.Getenv("TWITCH_USERNAME")
+	app.cfg.twitchOauth = os.Getenv("TWITCH_OAUTH")
+	app.cfg.ollamaModel = os.Getenv("OLLAMA_MODEL")
+	app.cfg.ollamaContext = os.Getenv("OLLAMA_CONTEXT")
+	app.cfg.ollamaSystem = os.Getenv("OLLAMA_SYSTEM")
+
+	tc := twitch.NewClient(app.cfg.twitchUsername, app.cfg.twitchOauth)
+	app.twitchClient = tc
 
 	// Received a PrivateMessage (normal chat message).
 	app.twitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
@@ -81,9 +81,11 @@ func main() {
 
 	app.twitchClient.OnConnect(func() {
 		app.log.Info("Successfully connected to Twitch Servers")
-		app.log.Info("Ollama Context: ", app.config.ollamaContext)
-		app.log.Info("Ollama System: ", app.config.ollamaSystem)
-
+		app.log.Infow("Ollama",
+			"Context: ", app.cfg.ollamaContext,
+			"Model: ", app.cfg.ollamaModel,
+			"System: ", app.cfg.ollamaSystem,
+		)
 	})
 
 	channels := os.Getenv("TWITCH_CHANNELS")

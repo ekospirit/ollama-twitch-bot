@@ -5,6 +5,10 @@ build:
 run:
 	./Nourybot.out
 
+jq:
+	./Nourybot.out | jq
+
+
 up:
 	docker compose down
 	docker compose build

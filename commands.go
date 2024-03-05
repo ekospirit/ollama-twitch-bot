@@ -22,7 +22,7 @@ func (app *application) handleCommand(message twitch.PrivateMessage) {
 		if msgLen < 2 {
 			reply = "Not enough arguments provided. Usage: ()gpt <query>"
 		} else {
-			switch app.config.ollamaContext {
+			switch app.cfg.ollamaContext {
 			case "none":
 				app.generateNoContext(message.Channel, message.Message[6:len(message.Message)])
 				return

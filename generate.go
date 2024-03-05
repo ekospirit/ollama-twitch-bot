@@ -41,8 +41,8 @@ func (app *application) chatUserContext(target, username, input string) {
 	olm.Content = input
 	app.userMsgStore[username] = append(app.userMsgStore[username], olm)
 
-	requestBody.Model = app.config.ollamaModel
-	requestBody.System = app.config.ollamaSystem
+	requestBody.Model = app.cfg.ollamaModel
+	requestBody.System = app.cfg.ollamaSystem
 	requestBody.Messages = app.userMsgStore[username]
 	requestBody.Prompt = input
 	requestBody.Stream = false
@@ -89,8 +89,8 @@ func (app *application) chatGeneralContext(target, input string) {
 	olm.Content = input
 	app.msgStore = append(app.msgStore, olm)
 
-	requestBody.Model = app.config.ollamaModel
-	requestBody.System = app.config.ollamaSystem
+	requestBody.Model = app.cfg.ollamaModel
+	requestBody.System = app.cfg.ollamaSystem
 	requestBody.Messages = app.msgStore
 	requestBody.Prompt = input
 	requestBody.Stream = false
@@ -131,8 +131,8 @@ func (app *application) chatGeneralContext(target, input string) {
 func (app *application) generateNoContext(target, input string) {
 	var requestBody ollamaRequest
 
-	requestBody.Model = app.config.ollamaModel
-	requestBody.System = app.config.ollamaSystem
+	requestBody.Model = app.cfg.ollamaModel
+	requestBody.System = app.cfg.ollamaSystem
 	requestBody.Prompt = input
 	requestBody.Stream = false
 
