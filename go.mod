@@ -1,4 +1,4 @@
-module github.com/lyx0/nourybot-gpt
+module github.com/lyx0/ollama-twitch-bot
 
 go 1.22.0
 

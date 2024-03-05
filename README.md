@@ -1,4 +1,4 @@
-# NourybotGPT
+# Ollama Twitch Bot
 
 Twitch chat bot that interacts with ollama. Work in Progress.
 

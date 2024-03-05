@@ -1,13 +1,12 @@
 build:
 	go get -d -v ./...
-	go build -o Nourybot.out .
+	go build -o OllamaTwitchBot.out .
 
 run:
-	./Nourybot.out
+	./OllamaTwitchBot.out
 
 jq:
-	./Nourybot.out | jq
-
+	./OllamaTwitchBot.out | jq
 
 up:
 	docker compose down

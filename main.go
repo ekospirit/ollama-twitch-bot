@@ -41,8 +41,6 @@ func main() {
 		sugar.Fatal("Error loading .env")
 	}
 
-	//tc := twitch.NewClient(config.twitchUsername, config.twitchOauth)
-
 	userMsgStore := make(map[string][]ollamaMessage)
 
 	app := &application{

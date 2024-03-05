@@ -13,7 +13,7 @@ COPY .env .
 RUN go get -d -v ./...
 
 # Build the Go app
-RUN go build -o Nourybot.out .
+RUN go build -o OllamaTwitchBot.out .
 
 # Run the executable
-CMD [ "./Nourybot.out"]
+CMD [ "./OllamaTwitchBot.out"]
