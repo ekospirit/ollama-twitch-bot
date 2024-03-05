@@ -64,7 +64,7 @@ func (app *application) handleCommand(message twitch.PrivateMessage) {
 		if msgLen < 2 {
 			reply = "Not enough arguments provided. Usage: ()bttv <emote name>"
 		} else {
-			app.generateChat(target, message.Message[6:len(message.Message)])
+			app.chatPersonalContext(target, message.User.Name, message.Message[6:len(message.Message)])
 		}
 
 		if reply != "" {

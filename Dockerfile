@@ -20,4 +20,4 @@ RUN go get -d -v ./...
 RUN go build ./cmd/nourybot
 
 # Run the executable
-CMD [ "./nourybot", "jq"]
+CMD [ "./nourybot"]

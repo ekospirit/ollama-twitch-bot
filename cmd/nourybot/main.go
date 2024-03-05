@@ -13,28 +13,18 @@ import (
 )
 
 type config struct {
-	twitchUsername     string
-	twitchOauth        string
-	twitchClientId     string
-	twitchClientSecret string
-	eventSubSecret     string
-	twitchID           string
-	wolframAlphaAppID  string
-	commandPrefix      string
-	env                string
-	db                 struct {
-		dsn          string
-		maxOpenConns int
-		maxIdleConns int
-		maxIdleTime  string
-	}
+	twitchUsername string
+	twitchOauth    string
+	commandPrefix  string
 }
 
 type application struct {
-	TwitchClient *twitch.Client
-	Log          *zap.SugaredLogger
-	Environment  string
-	Config       config
+	TwitchClient     *twitch.Client
+	Log              *zap.SugaredLogger
+	Environment      string
+	Config           config
+	PersonalMsgStore map[string][]ollamaMessage
+	MsgStore         []ollamaMessage
 }
 
 func main() {
@@ -70,11 +60,12 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 	cfg.twitchOauth = os.Getenv("TWITCH_OAUTH")
 	tc := twitch.NewClient(cfg.twitchUsername, cfg.twitchOauth)
 
+	personalMsgStore := make(map[string][]ollamaMessage)
 	app := &application{
-		TwitchClient: tc,
-		Log:          sugar,
-		Config:       cfg,
-		Environment:  cfg.env,
+		TwitchClient:     tc,
+		Log:              sugar,
+		Config:           cfg,
+		PersonalMsgStore: personalMsgStore,
 	}
 
 	// Received a PrivateMessage (normal chat message).
@@ -110,7 +101,6 @@ func run(ctx context.Context, w io.Writer, args []string) error {
 		// Successfully connected to Twitch
 		app.Log.Infow("Successfully connected to Twitch Servers",
 			"Bot username", cfg.twitchUsername,
-			"Environment", cfg.env,
 		)
 	})
 
