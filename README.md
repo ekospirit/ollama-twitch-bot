@@ -1,6 +1,6 @@
 # Ollama Twitch Bot
 
-Twitch chat bot that interacts with ollama. Work in Progress.
+Twitch chat bot that interacts with ollama.
 
 ## Requirements:
 [Golang](https://go.dev/)
@@ -16,3 +16,6 @@ Twitch chat bot that interacts with ollama. Work in Progress.
     - Without docker:
         - `$ make build && make run`
 4. Join the Twitch channels you chose and type `()gpt <cool query>` and hopefully get a response.
+
+## Example Response
+![image](https://github.com/lyx0/ollama-twitch-bot/assets/66651385/3a8a6e7d-07d7-42fc-bf10-27227746a1a8)
