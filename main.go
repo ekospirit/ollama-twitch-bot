@@ -16,6 +16,8 @@ type config struct {
 	ollamaContext  string
 	ollamaSystem   string
 	ollamahost     string
+  twitchBotName  string
+  trigger        string
 }
 
 type application struct {
@@ -55,56 +57,68 @@ func main() {
 	app.cfg.ollamaContext = os.Getenv("OLLAMA_CONTEXT")
 	app.cfg.ollamaSystem = os.Getenv("OLLAMA_SYSTEM")
 	app.cfg.ollamahost = os.Getenv("OLLAMA_HOST")
+  app.cfg.twitchBotName = os.Getenv("TWITCHBOTNAME")
+  if app.cfg.twitchBotName == "" {
+      app.cfg.twitchBotName = "gpt" // Fallback to default bot name
+  }
+
+  app.cfg.trigger = os.Getenv("TRIGGER")
+  if app.cfg.trigger == "" {
+      app.cfg.trigger = "()" // Fallback to default trigger
+  }
 
 	tc := twitch.NewClient(app.cfg.twitchUsername, app.cfg.twitchOauth)
 	app.twitchClient = tc
 
-	// Received a PrivateMessage (normal chat message).
-	app.twitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
-		// roomId is the Twitch UserID of the channel the message originated from.
-		// If there is no roomId something went really wrong.
-		roomId := message.Tags["room-id"]
-		if roomId == "" {
-			return
-		}
+// Received a PrivateMessage (normal chat message).
+app.twitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
+    // roomId is the Twitch UserID of the channel the message originated from.
+    // If there is no roomId something went really wrong.
+    roomId := message.Tags["room-id"]
+    if roomId == "" {
+        return
+    }
 
-		// Message was shorter than our prefix is therefore it's irrelevant for us.
-		if len(message.Message) >= 2 && message.Message[:2] == "()" {
-			var reply string
+    // Check if the message starts with the trigger from the config.
+    if len(message.Message) >= len(app.cfg.trigger) && message.Message[:len(app.cfg.trigger)] == app.cfg.trigger {
+        var reply string
 
-			// msgLen is the amount of words in a message without the prefix.
-			msgLen := len(strings.SplitN(message.Message, " ", -2))
+        // Extract the command name and arguments.
+        msgLen := len(strings.SplitN(message.Message, " ", -2))
+        commandName := strings.ToLower(strings.SplitN(message.Message, " ", 3)[0][len(app.cfg.trigger):])
+        args := strings.TrimSpace(message.Message[len(app.cfg.trigger)+len(commandName):])
 
-			// commandName is the actual name of the command without the prefix.
-			// e.g. `()gpt` is `gpt`.
-			commandName := strings.ToLower(strings.SplitN(message.Message, " ", 3)[0][2:])
-			switch commandName {
-			case "gpt":
-				if msgLen < 2 {
-					reply = "Not enough arguments provided. Usage: ()gpt <query>"
-					return
-				} else {
-					switch app.cfg.ollamaContext {
-					case "none":
-						app.generateNoContext(message.Channel, message.Message[6:len(message.Message)])
-						return
+        // Handle commands.
+        switch commandName {
+        case "gpt":
+            if msgLen < 2 {
+                reply = fmt.Sprintf("Not enough arguments provided. Usage: %sgpt <query>", app.cfg.trigger)
+            } else {
+                // Check the context configuration and process accordingly.
+                switch app.cfg.ollamaContext {
+                case "none":
+                    app.generateNoContext(message.Channel, args)
+                    return
+                case "general":
+                    app.chatGeneralContext(message.Channel, args)
+                    return
+                case "user":
+                    app.chatUserContext(message.Channel, message.User.Name, args)
+                    return
+                default:
+                    reply = "Invalid context configuration. Please check the server settings."
+                }
+            }
+        default:
+            reply = fmt.Sprintf("Unknown command: %s%s", app.cfg.trigger, commandName)
+        }
 
-					case "general":
-						app.chatGeneralContext(message.Channel, message.Message[6:len(message.Message)])
-						return
-
-					case "user":
-						app.chatUserContext(message.Channel, message.User.Name, message.Message[6:len(message.Message)])
-						return
-					}
-				}
-				if reply != "" {
-					go app.send(message.Channel, reply)
-					return
-				}
-			}
-		}
-	})
+        // Send the reply if there is one.
+        if reply != "" {
+            go app.send(message.Channel, reply)
+        }
+    }
+})
 
 	app.twitchClient.OnConnect(func() {
 		app.log.Info("Successfully connected to Twitch Servers")
