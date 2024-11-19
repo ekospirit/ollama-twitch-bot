@@ -15,6 +15,7 @@ type config struct {
 	ollamaModel    string
 	ollamaContext  string
 	ollamaSystem   string
+	ollamahost     string
 }
 
 type application struct {
@@ -53,6 +54,7 @@ func main() {
 	app.cfg.ollamaModel = os.Getenv("OLLAMA_MODEL")
 	app.cfg.ollamaContext = os.Getenv("OLLAMA_CONTEXT")
 	app.cfg.ollamaSystem = os.Getenv("OLLAMA_SYSTEM")
+	app.cfg.ollamahost = os.Getenv("OLLAMA_HOST")
 
 	tc := twitch.NewClient(app.cfg.twitchUsername, app.cfg.twitchOauth)
 	app.twitchClient = tc
