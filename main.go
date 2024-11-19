@@ -16,8 +16,8 @@ type config struct {
 	ollamaContext  string
 	ollamaSystem   string
 	ollamahost     string
-  twitchBotName  string
-  trigger        string
+  	twitchBotName  string
+  	trigger        string
 }
 
 type application struct {
@@ -57,15 +57,15 @@ func main() {
 	app.cfg.ollamaContext = os.Getenv("OLLAMA_CONTEXT")
 	app.cfg.ollamaSystem = os.Getenv("OLLAMA_SYSTEM")
 	app.cfg.ollamahost = os.Getenv("OLLAMA_HOST")
-  app.cfg.twitchBotName = os.Getenv("TWITCHBOTNAME")
-  if app.cfg.twitchBotName == "" {
-      app.cfg.twitchBotName = "gpt" // Fallback to default bot name
-  }
+  	app.cfg.twitchBotName = os.Getenv("TWITCHBOTNAME")
+  	    if app.cfg.twitchBotName == "" {
+  	    app.cfg.twitchBotName = "gpt" // Fallback to default bot name
+  	}
 
-  app.cfg.trigger = os.Getenv("TRIGGER")
-  if app.cfg.trigger == "" {
-      app.cfg.trigger = "()" // Fallback to default trigger
-  }
+ 	app.cfg.trigger = os.Getenv("TRIGGER")
+  	    if app.cfg.trigger == "" {
+	    app.cfg.trigger = "()" // Fallback to default trigger
+  	}
 
 	tc := twitch.NewClient(app.cfg.twitchUsername, app.cfg.twitchOauth)
 	app.twitchClient = tc
