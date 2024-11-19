@@ -1,4 +1,4 @@
-module github.com/nouryxd/ollama-twitch-bot
+module github.com/ekospirit/ollama-twitch-bot
 
 go 1.22.0
 
