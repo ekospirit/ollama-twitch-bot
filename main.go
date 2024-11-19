@@ -24,8 +24,8 @@ type application struct {
 	twitchClient *twitch.Client
 	log          *zap.SugaredLogger
 	cfg          config
-	userMsgStore map[string][]ollamaMessage
-	msgStore     []ollamaMessage
+	userMsgStore map[string][]ollamaMessage // Use ollamaMessage
+	msgStore     []ollamaMessage            // Use ollamaMessage
 }
 
 func main() {
@@ -45,7 +45,7 @@ func main() {
 	}
 
 	// Initialize user message store and application
-	userMsgStore := make(map[string][]ollamaMessage)
+	userMsgStore := make(map[string][]ollamaMessage) // ollamaMessage is used here
 
 	app := &application{
 		log:          sugar,
@@ -118,6 +118,7 @@ func main() {
 			// Send the reply if needed
 			if reply != "" {
 				go app.send(message.Channel, reply)
+				return
 			}
 		}
 	})
@@ -143,4 +144,3 @@ func main() {
 		panic(err)
 	}
 }
-
