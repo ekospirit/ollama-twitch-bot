@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 	"strings"
-
+	"fmt"
 	"github.com/gempir/go-twitch-irc/v4"
 	"github.com/joho/godotenv"
 	"go.uber.org/zap"
