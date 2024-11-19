@@ -1,19 +1,24 @@
-# Start from golang base image
+# Start from a golang base image with build tools installed
 FROM golang:alpine
 
-# Setup folders
-RUN mkdir /app
+# Install dependencies necessary for Go build
+RUN apk add --no-cache --virtual .build-deps gcc musl-dev
+
+# Setup working directory
 WORKDIR /app
 
-# Copy the source from the current directory to the working Directory inside the container
+# Copy the source and environment file
 COPY . .
 COPY .env .
 
-# Download all the dependencies
-RUN go get -d -v ./...
+# Initialize Go modules and fetch dependencies
+RUN go mod tidy
 
 # Build the Go app
 RUN go build -o OllamaTwitchBot.out .
 
+# Clean up build dependencies
+RUN apk del .build-deps
+
 # Run the executable
-CMD [ "./OllamaTwitchBot.out"]
+CMD ["./OllamaTwitchBot.out"]
